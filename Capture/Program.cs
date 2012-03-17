@@ -11,11 +11,20 @@ namespace Capture
         /// アプリケーションのメイン エントリ ポイントです。
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+
+            if (0 < args.Length && string.Compare(args[0], "/setting", true) == 0)
+            {
+                Application.Run(new SettingForm());
+                Properties.Settings.Default.Save();
+            }
+            else
+            {
+                Application.Run(new MainForm());
+            }
         }
     }
 }

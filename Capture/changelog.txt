@@ -1,0 +1,2 @@
+﻿2012/03/12 Endo,Hiroaki (do.hiroaki@gmail.com) - 0.0.1
+	* Release
