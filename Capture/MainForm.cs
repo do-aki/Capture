@@ -44,6 +44,15 @@ namespace Capture
             }
         }
 
+        private void MainForm_Shown(object sender, EventArgs e)
+        {
+            if (String.IsNullOrEmpty(Properties.Settings.Default.UploadUri))
+            {
+                ShowSettingForm();
+            }
+        }
+
+
         private void MainForm_Load(object sender, EventArgs e)
         {
             Activate();
@@ -61,7 +70,7 @@ namespace Capture
         Point begin_pos;
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            if (!selecting)
+            if (e.Button == System.Windows.Forms.MouseButtons.Left && !selecting)
             {
                 selecting = true;
                 begin_pos = Control.MousePosition;
@@ -74,7 +83,8 @@ namespace Capture
         private void Form1_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == System.Windows.Forms.MouseButtons.Right) {
-                Close();
+                ShowSettingForm();
+                selecting = false;
             }
 
             if (selecting)
@@ -89,9 +99,10 @@ namespace Capture
                     var tmp = Path.GetTempFileName();
                     bmp.Save(tmp, ImageFormat.Png);
 
-                    var uri = getUploadUri();
-                    if (String.IsNullOrEmpty(uri)) {
-                        Close();
+                    var uri = Properties.Settings.Default.UploadUri;
+                    if (!Uri.IsWellFormedUriString(uri, UriKind.Absolute)) {
+                        MessageBox.Show("URLの形式が正しくありません\n右クリックして設定ウィンドウを開き正しいURLを指定してください");
+                        Show();
                         return;
                     }
 
@@ -115,17 +126,23 @@ namespace Capture
             }
         }
 
-        private string getUploadUri()
+        private System.Windows.Forms.DialogResult ShowSettingForm()
         {
-            if (String.IsNullOrEmpty(Properties.Settings.Default.UploadUri)) {
-                (new SettingForm()).ShowDialog();
+            Hide();
+
+            var ret = (new SettingForm()).ShowDialog();
+            if (ret == System.Windows.Forms.DialogResult.Cancel)
+            {
+                Properties.Settings.Default.Save();
+                Close();
             }
-          
-            if (!Uri.IsWellFormedUriString(Properties.Settings.Default.UploadUri, UriKind.Absolute)) { 
-                return null;
+            else if (ret == System.Windows.Forms.DialogResult.OK)
+            {
+                Properties.Settings.Default.Save();
+                Show();
             }
 
-            return Properties.Settings.Default.UploadUri;
+            return ret;
         }
 
         private void UploadFile(string uri, string file) {
@@ -202,7 +219,6 @@ namespace Capture
 
             return bmp;
         }
-
     }
 }
 

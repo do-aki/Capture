@@ -15,16 +15,7 @@ namespace Capture
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
-            if (0 < args.Length && string.Compare(args[0], "/setting", true) == 0)
-            {
-                Application.Run(new SettingForm());
-                Properties.Settings.Default.Save();
-            }
-            else
-            {
-                Application.Run(new MainForm());
-            }
+            Application.Run(new MainForm());
         }
     }
 }

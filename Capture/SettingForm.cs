@@ -16,18 +16,6 @@ namespace Capture
             InitializeComponent();
         }
 
-        private void button_Save_Click(object sender, EventArgs e)
-        {
-            Close();
-        }
-
-        private void textBox_UploadUri_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter) {
-                Close();
-            }
-        }
-
         private void SettingForm_Load(object sender, EventArgs e)
         {
             Activate();
@@ -37,5 +25,6 @@ namespace Capture
         {
             (new AboutForm()).ShowDialog();
         }
+
     }
 }
