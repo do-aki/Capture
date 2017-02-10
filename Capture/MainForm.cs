@@ -109,8 +109,16 @@ namespace Capture
         private List<ActionInterface> getEnableActions()
         {
             var actions = new List<ActionInterface>();
-            actions.Add(new Upload(Properties.Settings.Default.UploadUri));
 
+            if (Properties.Settings.Default.EnableCopy)
+            {
+                actions.Add(new Copy());
+            }
+
+            if (Properties.Settings.Default.EnableUpload)
+            {
+                actions.Add(new Upload(Properties.Settings.Default.UploadUri));
+            }
             return actions;
         }
 

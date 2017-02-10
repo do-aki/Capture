@@ -34,5 +34,29 @@ namespace Capture.Properties {
                 this["UploadUri"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool EnableUpload {
+            get {
+                return ((bool)(this["EnableUpload"]));
+            }
+            set {
+                this["EnableUpload"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool EnableCopy {
+            get {
+                return ((bool)(this["EnableCopy"]));
+            }
+            set {
+                this["EnableCopy"] = value;
+            }
+        }
     }
 }

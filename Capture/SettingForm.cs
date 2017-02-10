@@ -25,6 +25,5 @@ namespace Capture
         {
             (new AboutForm()).ShowDialog();
         }
-
     }
 }
