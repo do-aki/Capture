@@ -1,17 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using System.Net;
-using System.Collections.Specialized;
-using System.IO;
-using System.Diagnostics;
+using Capture.Action;
 
 namespace Capture
 {
@@ -95,38 +87,34 @@ namespace Capture
                     Hide();
                     Application.DoEvents();
 
+                    var actions = this.getEnableActions();
                     var bmp = CaptureScreen(r);
-                    var tmp = Path.GetTempFileName();
-                    bmp.Save(tmp, ImageFormat.Png);
-
-                    var uri = Properties.Settings.Default.UploadUri;
-                    if (!Uri.IsWellFormedUriString(uri, UriKind.Absolute)) {
-                        MessageBox.Show("URLの形式が正しくありません\n右クリックして設定ウィンドウを開き正しいURLを指定してください");
-                        Show();
-                        return;
+                    foreach (var action in actions) {
+                        var result = action.Execute(bmp);
+                        if (result == ActionResult.Failed)
+                        {
+                            MessageBox.Show(action.GetErrorMessage());
+                            Show();
+                            selecting = false;
+                            return;
+                        }
                     }
 
-                    try
-                    {
-                        UploadFile(uri, tmp);
-                        Properties.Settings.Default.Save();
-                    }
-                    catch (WebException exception)
-                    {
-                        MessageBox.Show("投稿に失敗しました\n\n" + exception.Message);
-                    }
-                    finally
-                    {
-                        File.Delete(tmp);
-                    }
-                    
                     Close();
                 }
                 selecting = false;
             }
         }
 
-        private System.Windows.Forms.DialogResult ShowSettingForm()
+        private List<ActionInterface> getEnableActions()
+        {
+            var actions = new List<ActionInterface>();
+            actions.Add(new Upload(Properties.Settings.Default.UploadUri));
+
+            return actions;
+        }
+
+        private DialogResult ShowSettingForm()
         {
             Hide();
 
@@ -136,68 +124,13 @@ namespace Capture
                 Properties.Settings.Default.Save();
                 Close();
             }
-            else if (ret == System.Windows.Forms.DialogResult.OK)
+            else if (ret == DialogResult.OK)
             {
                 Properties.Settings.Default.Save();
                 Show();
             }
 
             return ret;
-        }
-
-        private void UploadFile(string uri, string file) {
-            string boundary = System.Environment.TickCount.ToString();
-            var req = (HttpWebRequest)System.Net.WebRequest.Create(uri);
-            req.Method = "POST";
-            req.ContentType = "multipart/form-data; boundary=" + boundary;
-
-            using (var reqStream = req.GetRequestStream())
-            {
-                StreamWriteBytes(reqStream, Encoding.UTF8.GetBytes("--" + boundary + "\r\n" +
-                    "Content-Disposition: form-data; name=\"imagedata\"; filename=\"image.png\"\r\n" +
-                    "Content-Type: application/octet-stream\r\n" +
-                    "Content-Transfer-Encoding: binary\r\n" +
-                    "\r\n"
-                ));
-
-                StreamWriteFile(reqStream, file);
-
-                StreamWriteBytes(reqStream, Encoding.UTF8.GetBytes("\r\n--" + boundary + "--\r\n"));
-            }
-
-            string res;
-            using (var sr = new StreamReader(((HttpWebResponse)req.GetResponse()).GetResponseStream(), Encoding.UTF8))
-            {
-                res = sr.ReadToEnd();
-            }
-
-            if (res.StartsWith("http://") || res.StartsWith("https://"))
-            {
-                Process.Start(res);
-            }
-        }
-
-
-        private static void StreamWriteBytes(Stream stm, byte[] data)
-        {
-            stm.Write(data, 0, data.Length);
-        }
-
-        private static void StreamWriteFile(Stream stm, string file)
-        {
-            var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
-
-            byte[] readData = new byte[0x1024];
-            int readSize = 0;
-            while (true)
-            {
-                readSize = fs.Read(readData, 0, readData.Length);
-                if (readSize == 0)
-                    break;
-                stm.Write(readData, 0, readSize);
-            }
-
-            fs.Close();
         }
 
         private static Rectangle PointToRectangle(Point p1, Point p2)
